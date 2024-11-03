@@ -10,7 +10,6 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', ['launch/gap_follow_launch.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,6 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'reactive_node = gap_follow.reactive_node:main',
+            'talker = scripts.talker:main',
+            'relay = scripts.replay:main',
         ],
     },
 )
