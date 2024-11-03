@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+import rclpy.logging 
 
 import numpy as np
 from sensor_msgs.msg import LaserScan
