@@ -26,7 +26,10 @@ class ReactiveFollowGap(Node):
                                                   drive_topic,
                                                   10)
 
+        self.get_logger().info('Starting ReactiveFollowGap Node')
+
     def preprocess_lidar(self, ranges):
+        self.get_logger().info('Preprocessing LIDAR data')
         """ Preprocess the LiDAR scan array. Expert implementation includes:
             1.Setting each value to the mean over some window
             2.Rejecting high values (eg. > 3m)
@@ -40,6 +43,7 @@ class ReactiveFollowGap(Node):
         return proc_ranges
 
     def find_max_gap(self, free_space_ranges):
+        self.get_logger().info('Finding max gap')
         """ Return the start index & end index of the max gap in free_space_ranges
         """
 
@@ -68,6 +72,7 @@ class ReactiveFollowGap(Node):
         return (maxStart, maxEnd)
     
     def find_best_point(self, start_i, end_i, ranges):
+        self.get_logger().info('Finding best point')
         """Start_i & end_i are start and end indicies of max-gap range, respectively
         Return index of best point in ranges
 	    Naive: Choose the furthest point within ranges and go there
@@ -78,6 +83,7 @@ class ReactiveFollowGap(Node):
         return bestPoint
 
     def lidar_callback(self, data):
+        self.get_logger().info('Received LIDAR data')
         """ Process each LiDAR scan as per the Follow Gap algorithm & publish an AckermannDriveStamped Message
         """
         ranges = data.ranges
