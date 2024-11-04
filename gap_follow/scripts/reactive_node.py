@@ -29,6 +29,7 @@ class ReactiveFollowGap(Node):
                                                   drive_topic,
                                                   10)
         self.lastProcessedRange = np.zeros((1080,), dtype=np.float32)
+        self.lastAngle, self.lastSpeed = None, None
         self.get_logger().info('Starting ReactiveFollowGap Node')
 
     def preprocess_lidar(self, ranges):
@@ -78,16 +79,15 @@ class ReactiveFollowGap(Node):
         """
         ranges = data.ranges
         proc_ranges = self.preprocess_lidar(ranges)
-        
-        # TODO:
+
         #Find closest point to LiDAR
         closestPoint = min(
             range(len(ranges)), key=lambda x: ranges[x]
         )
         
         #Eliminate all points inside 'bubble' (set them to zero) 
-        left = max(0, closestPoint - 100)
-        right = min(len(proc_ranges) - 1, closestPoint + 99)
+        left = max(0, closestPoint - 150)
+        right = min(len(proc_ranges) - 1, closestPoint + 149)
         for i in range(left, right + 1):
             proc_ranges[i] = 0
 
@@ -99,17 +99,34 @@ class ReactiveFollowGap(Node):
 
         #Publish Drive message
         angle = data.angle_increment * bestPoint + data.angle_min
-        if 0 < angle < np.pi/18:
-            speed = 3.0
-        elif np.pi/18 <= angle < np.pi/9:
-            speed = 1.2
+
+        if self.lastAngle:
+            angle, self.lastAngle = angle*0.85 + self.lastAngle*0.15, angle
+
+
+        # straight
+        if 0 < abs(angle) < np.pi/9:
+            speed = 4.0
+
+        # Turning into corner
+        elif np.pi/9 <= abs(angle) < np.pi/6:
+            speed = 2.0
+
+        # correcting
         else:
-            speed = 0.5
+            speed = 1.0
+
+        if self.lastSpeed:
+            speed, self.lastSpeed = speed*0.85 + self.lastSpeed*0.15, speed
+        else:
+            self.lastSpeed = speed
+
 
         driveMsg = AckermannDriveStamped()
         driveMsg.drive.steering_angle = angle
         driveMsg.drive.speed = speed
         self.cmdDrive_pub.publish(driveMsg)
+        self.get_logger().info('Speed:{}\tAngle:{}'.format(speed, angle))
 
         
 
